@@ -432,6 +432,10 @@ function renderChatMessage(msg) {
   const img = document.createElement('img'); img.className = 'avatar'; img.src = msg.avatar || ''; li.appendChild(img);
   const body = document.createElement('div'); body.className = 'msg-body';
   const header = document.createElement('div'); header.className = 'msg-header'; header.textContent = `[${msg.nickname}]`;
+  const timestamp = document.createElement('span');
+  timestamp.style.fontSize = '0.8em'; timestamp.style.opacity = '0.7'; timestamp.style.marginLeft = '8px';
+  timestamp.textContent = msg.timestamp || '';
+  header.appendChild(timestamp);
   const content = document.createElement('div'); content.className = 'msg-content'; content.textContent = msg.content || '';
   const bar = document.createElement('div'); bar.className = 'reaction-bar';
   REACTIONS.forEach(em => {
@@ -457,6 +461,10 @@ function renderImageMessage(msg) {
   const imgA = document.createElement('img'); imgA.className = 'avatar'; imgA.src = msg.avatar || ''; li.appendChild(imgA);
   const body = document.createElement('div'); body.className = 'msg-body';
   const header = document.createElement('div'); header.className = 'msg-header'; header.textContent = `[${msg.nickname}] 分享了圖片 ${msg.name || ''}`;
+  const timestamp = document.createElement('span');
+  timestamp.style.fontSize = '0.8em'; timestamp.style.opacity = '0.7'; timestamp.style.marginLeft = '8px';
+  timestamp.textContent = msg.timestamp || '';
+  header.appendChild(timestamp);
   const media = document.createElement('img'); media.className = 'msg-media'; media.src = msg.dataUrl; media.alt = msg.name || 'image';
   media.onclick = () => showModal(media.src);
   const bar = document.createElement('div'); bar.className = 'reaction-bar';
@@ -476,6 +484,10 @@ function renderVoiceMessage(msg) {
   const imgA = document.createElement('img'); imgA.className = 'avatar'; imgA.src = msg.avatar || ''; li.appendChild(imgA);
   const body = document.createElement('div'); body.className = 'msg-body';
   const header = document.createElement('div'); header.className = 'msg-header'; header.textContent = `[${msg.nickname}] 語音訊息`;
+  const timestamp = document.createElement('span');
+  timestamp.style.fontSize = '0.8em'; timestamp.style.opacity = '0.7'; timestamp.style.marginLeft = '8px';
+  timestamp.textContent = msg.timestamp || '';
+  header.appendChild(timestamp);
   const audio = document.createElement('audio'); audio.controls = true; audio.src = msg.audio;
   const transcript = document.createElement('div'); transcript.className = 'msg-content'; transcript.style.opacity = '0.85';
   transcript.textContent = msg.transcript ? `STT：${msg.transcript}` : '';

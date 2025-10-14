@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"sort"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -19,13 +20,14 @@ type Client struct {
 }
 
 type Message struct {
-	Room     string `json:"room"`
-	Nickname string `json:"nickname"`
-	Avatar   string `json:"avatar"`
-	Content  string `json:"content,omitempty"`
-	Type     string `json:"type"` // chat, vote, leave, switch
-	Question string `json:"question,omitempty"`
-	Answer   string `json:"answer,omitempty"`
+	Room      string `json:"room"`
+	Nickname  string `json:"nickname"`
+	Avatar    string `json:"avatar"`
+	Content   string `json:"content,omitempty"`
+	Type      string `json:"type"` // chat, vote, leave, switch
+	Question  string `json:"question,omitempty"`
+	Answer    string `json:"answer,omitempty"`
+	Timestamp string `json:"timestamp,omitempty"`
 }
 
 type Quiz struct {
@@ -179,6 +181,7 @@ func broadcastUserList(room string) {
 func handleMessages() {
 	for {
 		msg := <-broadcast
+		msg.Timestamp = time.Now().Format("15:04")
 
 		switch msg.Type {
 		case "vote":
@@ -188,11 +191,12 @@ func handleMessages() {
 			}
 			votes[msg.Room][msg.Content]++
 			result := Message{
-				Room:     msg.Room,
-				Nickname: "系統",
-				Avatar:   "",
-				Content:  fmt.Sprintf("投票結果: %v", votes[msg.Room]),
-				Type:     "chat",
+				Room:      msg.Room,
+				Nickname:  "系統",
+				Avatar:    "",
+				Content:   fmt.Sprintf("投票結果: %v", votes[msg.Room]),
+				Type:      "chat",
+				Timestamp: time.Now().Format("15:04"),
 			}
 			historyMutex.Lock()
 			history[msg.Room] = append(history[msg.Room], msg)
@@ -214,10 +218,11 @@ func handleMessages() {
 			quizzesMutex.Unlock()
 
 			broadcastMsg := Message{
-				Type:     "quiz_start",
-				Room:     msg.Room,
-				Nickname: msg.Nickname,
-				Question: msg.Question,
+				Type:      "quiz_start",
+				Room:      msg.Room,
+				Nickname:  msg.Nickname,
+				Question:  msg.Question,
+				Timestamp: msg.Timestamp,
 			}
 
 			historyMutex.Lock()
@@ -240,10 +245,11 @@ func handleMessages() {
 
 			if isCorrect {
 				resultMsg := Message{
-					Type:     "quiz_result",
-					Room:     msg.Room,
-					Nickname: msg.Nickname,
-					Answer:   quiz.Answer,
+					Type:      "quiz_result",
+					Room:      msg.Room,
+					Nickname:  msg.Nickname,
+					Answer:    quiz.Answer,
+					Timestamp: time.Now().Format("15:04"),
 				}
 				for client := range rooms[msg.Room] {
 					client.conn.WriteJSON(resultMsg)
