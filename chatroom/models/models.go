@@ -17,25 +17,26 @@ type Client struct {
 
 // Message
 type Message struct {
-	Room       string         `json:"room"`
-	Nickname   string         `json:"nickname"`
-	Avatar     string         `json:"avatar"`
-	Content    string         `json:"content,omitempty"`
-	Type       string         `json:"type"`
-	Question   string         `json:"question,omitempty"`
-	Answer     string         `json:"answer,omitempty"`
-	Timestamp  string         `json:"timestamp,omitempty"`
-	Emoji      string         `json:"emoji,omitempty"`
-	Options    []string       `json:"options,omitempty"`
-	Results    map[string]int `json:"results,omitempty"`
-	Transcript string         `json:"transcript,omitempty"`
-	Tries      int            `json:"tries,omitempty"`
-	Time       int            `json:"time,omitempty"`
-	X          float64        `json:"x,omitempty"`
-	Y          float64        `json:"y,omitempty"`
-	Color      string         `json:"color,omitempty"`
-	LineWidth  int            `json:"lineWidth,omitempty"`
-	Password   string         `json:"password,omitempty"`
+	Room       string          `json:"room"`
+	Nickname   string          `json:"nickname"`
+	Avatar     string          `json:"avatar"`
+	Content    string          `json:"content,omitempty"`
+	Type       string          `json:"type"`
+	Question   string          `json:"question,omitempty"`
+	Answer     string          `json:"answer,omitempty"`
+	Timestamp  string          `json:"timestamp,omitempty"`
+	Emoji      string          `json:"emoji,omitempty"`
+	Options    []string        `json:"options,omitempty"`
+	Results    map[string]int  `json:"results,omitempty"`
+	Transcript string          `json:"transcript,omitempty"`
+	Tries      int             `json:"tries,omitempty"`
+	Time       int             `json:"time,omitempty"`
+	X          float64         `json:"x,omitempty"`
+	Y          float64         `json:"y,omitempty"`
+	Color      string          `json:"color,omitempty"`
+	LineWidth  int             `json:"lineWidth,omitempty"`
+	Password   string          `json:"password,omitempty"`
+	RoomInfo   map[string]bool `json:"roomInfo,omitempty"`
 }
 
 // Quiz

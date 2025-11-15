@@ -259,36 +259,41 @@ func (s *StateService) BroadcastOnlineCount() {
 
 func (s *StateService) BroadcastRoomList() {
 	s.RoomsMutex.RLock()
-	var roomNames []string
+	s.RoomPasswordsMutex.RLock()
+
+	roomInfo := make(map[string]bool)
+
 	for roomName := range s.Rooms {
 		if !strings.HasPrefix(roomName, "_") {
-			roomNames = append(roomNames, roomName)
+			_, hasPassword := s.RoomPasswords[roomName]
+			roomInfo[roomName] = hasPassword
 		}
 	}
-	sort.Strings(roomNames)
-	foundLobby := false
-	for _, r := range roomNames {
-		if r == "lobby" {
-			foundLobby = true
-			break
-		}
-	}
-	if !foundLobby {
-		roomNames = append([]string{"lobby"}, roomNames...)
-	}
-	msg := models.Message{Type: "room_list", Options: roomNames}
 
-	allClients := make(map[*models.Client]bool)
+	if _, exists := roomInfo["lobby"]; !exists {
+		roomInfo["lobby"] = false
+	}
+
+	s.RoomPasswordsMutex.RUnlock()
+	s.RoomsMutex.RUnlock()
+
+	msg := models.Message{
+		Type:     "room_list",
+		RoomInfo: roomInfo,
+	}
+
+	var clientsToWrite []*models.Client
+	s.RoomsMutex.RLock()
 	for roomName, room := range s.Rooms {
 		if !strings.HasPrefix(roomName, "_") {
 			for client := range room {
-				allClients[client] = true
+				clientsToWrite = append(clientsToWrite, client)
 			}
 		}
 	}
 	s.RoomsMutex.RUnlock()
 
-	for client := range allClients {
+	for _, client := range clientsToWrite {
 		client.Mu.Lock()
 		if err := client.Conn.WriteJSON(msg); err != nil {
 			log.Println("WriteJSON error (room_list):", err)
