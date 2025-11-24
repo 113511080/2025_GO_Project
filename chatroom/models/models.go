@@ -13,6 +13,9 @@ type Client struct {
 	Nickname string
 	Room     string
 	Avatar   string
+	Level    int    `json:"level"`
+	Exp      int    `json:"exp"`
+	Title    string `json:"title"`
 }
 
 // ReplyTo 引用訊息結構
@@ -45,6 +48,9 @@ type Message struct {
 	Password   string          `json:"password,omitempty"`
 	RoomInfo   map[string]bool `json:"roomInfo,omitempty"`
 	ReplyTo    *ReplyTo        `json:"replyTo,omitempty"` // 引用訊息
+	Level      int             `json:"level,omitempty"`
+	Exp        int             `json:"exp,omitempty"`
+	Title      string          `json:"title,omitempty"`
 }
 
 // Quiz
@@ -73,4 +79,28 @@ type GameScore struct {
 type DrawState struct {
 	CurrentWord   string
 	CurrentDrawer string
+}
+
+// UserProfile 用戶資料
+type UserProfile struct {
+	Nickname string   `json:"nickname"`
+	Avatar   string   `json:"avatar"`
+	Level    int      `json:"level"`
+	Exp      int      `json:"exp"`
+	Title    string   `json:"title"`
+	Badges   []string `json:"badges"`
+	TotalMsg int      `json:"totalMsg"`
+	JoinDate string   `json:"joinDate"`
+	LastSeen string   `json:"lastSeen"`
+}
+
+// Achievement 成就
+type Achievement struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Icon        string `json:"icon"`
+	Unlocked    bool   `json:"unlocked"`
+	Progress    int    `json:"progress"`
+	Target      int    `json:"target"`
 }
