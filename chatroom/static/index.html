@@ -33,9 +33,9 @@ button:hover, label.button:hover { background: rgba(255,255,255,0.25); cursor: p
 #room-list li.active { background: rgba(135, 206, 250, 0.4); }
 #main-chat { flex-grow: 1; display: flex; flex-direction: column; padding-left: 20px; }
 #messages { flex-grow: 1; overflow-y: auto; list-style: none; padding: 0; margin: 0; }
-.message { display: flex; margin-bottom: 12px; align-items: flex-start; }
+.message { display: flex; margin-bottom: 18px; align-items: flex-start; position: relative; }
 .msg-avatar { width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover; }
-.msg-body { max-width: 70%; display: flex; flex-direction: column; position: relative; }
+.msg-body { max-width: 70%; display: flex; flex-direction: column; position: relative; padding-right: 120px; }
 .msg-header { font-size: 0.9em; font-weight: bold; margin-bottom: 4px; opacity: 0.8; }
 .msg-content { padding: 10px 14px; background: rgba(0, 0, 0, 0.2); border-radius: 0 12px 12px 12px; line-height: 1.5; word-wrap: break-word; }
 .message.system .msg-body { max-width: 100%; align-items: center; }
@@ -70,7 +70,7 @@ button:hover, label.button:hover { background: rgba(255,255,255,0.25); cursor: p
 .msg-reactions { margin-top: 5px; }
 .msg-reactions button { font-size: 0.8em; padding: 2px 6px; margin: 2px; background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; color: #fff; cursor: pointer; }
 .msg-reactions button:hover { background: rgba(255, 255, 255, 0.4); }
-.msg-emoji-picker { display: none; position: absolute; top: -20px; right: 10px; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); border-radius: 15px; padding: 2px 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+.msg-emoji-picker { display: none; position: absolute; top: 4px; right: -110px; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); border-radius: 15px; padding: 2px 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10; }
 .message:hover .msg-emoji-picker { display: block; }
 .msg-emoji-picker button { font-size: 1.1em; padding: 0 4px; margin: 0; background: none; border: none; color: #fff; cursor: pointer; transition: transform 0.1s; }
 .msg-emoji-picker button:hover { transform: scale(1.3); }
@@ -151,8 +151,8 @@ button:hover, label.button:hover { background: rgba(255,255,255,0.25); cursor: p
 .msg-reply-btn {
   display: none;
   position: absolute;
-  top: -8px;
-  right: 50px;
+  bottom: 4px;
+  right: -110px;
   background: rgba(135, 206, 250, 0.3);
   border: 1px solid rgba(135, 206, 250, 0.5);
   color: #fff;
@@ -161,6 +161,7 @@ button:hover, label.button:hover { background: rgba(255,255,255,0.25); cursor: p
   font-size: 0.8em;
   cursor: pointer;
   z-index: 5;
+  white-space: nowrap;
 }
 .message:hover .msg-reply-btn {
   display: block;
@@ -318,6 +319,204 @@ textarea {
 }
 /* --- 鼠標樣式 結束 --- */
 
+/* 等級系統樣式 */
+.level-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  font-weight: bold;
+  margin-left: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.title-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.7em;
+  margin-left: 4px;
+}
+.exp-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.exp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  transition: width 0.3s ease;
+}
+.profile-card {
+  background: rgba(30, 30, 50, 0.9);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 10px 0;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+.profile-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin-right: 15px;
+  border: 3px solid #667eea;
+}
+.profile-info {
+  flex: 1;
+}
+.profile-name {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 15px 0;
+}
+.stat-item {
+  text-align: center;
+  padding: 10px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+}
+.stat-value {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #87CEFA;
+}
+.stat-label {
+  font-size: 0.85em;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 10px;
+  margin-top: 15px;
+}
+.badge-item {
+  text-align: center;
+  padding: 10px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.badge-item:hover {
+  background: rgba(255,255,255,0.1);
+  transform: scale(1.05);
+}
+.badge-item.locked {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.badge-icon {
+  font-size: 2em;
+  margin-bottom: 5px;
+}
+.badge-name {
+  font-size: 0.75em;
+}
+.achievement-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+.achievement-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  margin: 8px 0;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+.achievement-item.unlocked {
+  border-left-color: #4CAF50;
+}
+.achievement-icon {
+  font-size: 2.5em;
+  margin-right: 15px;
+}
+.achievement-info {
+  flex: 1;
+}
+.achievement-name {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+.achievement-desc {
+  font-size: 0.85em;
+  opacity: 0.7;
+}
+.achievement-progress {
+  width: 100%;
+  height: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+.achievement-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  transition: width 0.3s ease;
+}
+.level-up-animation {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  padding: 30px 50px;
+  border-radius: 15px;
+  font-size: 2em;
+  font-weight: bold;
+  z-index: 1000;
+  animation: levelUpBounce 0.6s ease;
+  box-shadow: 0 10px 40px rgba(102, 126, 234, 0.6);
+}
+@keyframes levelUpBounce {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  50% { transform: translate(-50%, -50%) scale(1.1); }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+.user-level-info {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+.user-level-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+.user-level-details {
+  flex: 1;
+}
+.user-level-name {
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+
 </style>
 </head>
 <body>
@@ -352,6 +551,26 @@ textarea {
   <div id="chat-content">
     <div id="sidebar">
       <div id="online-status">🟢 在線：<span id="online-count">0</span> 人</div>
+      
+      <!-- 用戶等級資訊 -->
+      <div class="user-level-info">
+        <img id="user-avatar-sidebar" class="user-level-avatar" src="" alt="avatar">
+        <div class="user-level-details">
+          <div class="user-level-name">
+            <span id="user-nickname-sidebar"></span>
+            <span class="level-badge" id="user-level-badge">Lv.1</span>
+            <span class="title-badge" id="user-title-badge" style="display:none;"></span>
+          </div>
+          <div class="exp-bar">
+            <div class="exp-bar-fill" id="user-exp-bar" style="width: 0%;"></div>
+          </div>
+          <div style="font-size: 0.75em; opacity: 0.7; margin-top: 2px;">
+            <span id="user-exp-text">0/100 EXP</span>
+          </div>
+        </div>
+      </div>
+      
+      <button onclick="showProfileModal()" style="width:100%; margin-bottom:10px;">👤 個人資料</button>
       <button onclick="logout()" style="width:100%; margin-bottom:15px;">登出</button>
       <button onclick="showCreateRoomModal()" style="width:100%; margin-bottom:15px;">
         ＋ 建立或加入房間
@@ -508,6 +727,55 @@ textarea {
   <button onclick="closeModals()" style="margin-top: 15px; width: 100%; background: rgba(135, 206, 250, 0.4);">✓ 知道了</button>
 </div>
 
+<div id="profile-modal" class="modal" style="max-width: 600px;">
+  <button class="modal-close-btn" onclick="closeModals()">×</button>
+  <h4>👤 個人資料</h4>
+  
+  <div class="profile-card">
+    <div class="profile-header">
+      <img id="profile-avatar" class="profile-avatar" src="" alt="avatar">
+      <div class="profile-info">
+        <div class="profile-name">
+          <span id="profile-nickname"></span>
+          <span class="level-badge" id="profile-level-badge">Lv.1</span>
+        </div>
+        <div id="profile-title" class="title-badge" style="display:inline-block;"></div>
+        <div class="exp-bar" style="margin-top: 8px;">
+          <div class="exp-bar-fill" id="profile-exp-bar" style="width: 0%;"></div>
+        </div>
+        <div style="font-size: 0.85em; opacity: 0.7; margin-top: 4px;">
+          <span id="profile-exp-text">0/100 EXP</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="profile-stats">
+      <div class="stat-item">
+        <div class="stat-value" id="stat-level">1</div>
+        <div class="stat-label">等級</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="stat-messages">0</div>
+        <div class="stat-label">訊息數</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="stat-badges">0</div>
+        <div class="stat-label">徽章</div>
+      </div>
+    </div>
+  </div>
+  
+  <h4 style="margin-top: 20px;">🏆 成就系統</h4>
+  <div class="achievement-list" id="achievement-list">
+    <!-- 成就項目會動態生成 -->
+  </div>
+  
+  <h4 style="margin-top: 20px;">🎖️ 我的徽章</h4>
+  <div class="badges-grid" id="badges-grid">
+    <!-- 徽章會動態生成 -->
+  </div>
+</div>
+
 <script>
 // (星空 JS 與上一版相同)
 const canvas = document.getElementById('galaxy');
@@ -595,6 +863,51 @@ let audioTranscript = null;
 // 引用訊息變數
 let replyToMessage = null;
 
+// 等級系統變數
+let userLevel = parseInt(localStorage.getItem('userLevel')) || 1;
+let userExp = parseInt(localStorage.getItem('userExp')) || 0;
+let userTitle = localStorage.getItem('userTitle') || '';
+let totalMessages = parseInt(localStorage.getItem('totalMessages')) || 0;
+let unlockedBadges = JSON.parse(localStorage.getItem('unlockedBadges') || '[]');
+
+// 等級經驗值表（每級所需經驗）
+const expTable = [
+  100, 200, 350, 550, 800, 1100, 1450, 1850, 2300, 2800, // Lv 1-10
+  3350, 3950, 4600, 5300, 6050, 6850, 7700, 8600, 9550, 10550, // Lv 11-20
+  11600, 12700, 13850, 15050, 16300, 17600, 18950, 20350, 21800, 23300 // Lv 21-30
+];
+
+// 稱號系統
+const titles = {
+  newbie: { name: '新手', condition: () => userLevel >= 1 },
+  active: { name: '活躍者', condition: () => totalMessages >= 50 },
+  veteran: { name: '老手', condition: () => totalMessages >= 200 },
+  master: { name: '大師', condition: () => userLevel >= 10 },
+  legend: { name: '傳奇', condition: () => userLevel >= 20 },
+  champion: { name: '冠軍', condition: () => totalMessages >= 500 }
+};
+
+// 成就系統
+const achievements = [
+  { id: 'first_msg', name: '初次發言', desc: '發送第一條訊息', icon: '💬', target: 1, progress: 0 },
+  { id: 'chat_10', name: '健談', desc: '發送10條訊息', icon: '🗣️', target: 10, progress: 0 },
+  { id: 'chat_50', name: '話癆', desc: '發送50條訊息', icon: '💭', target: 50, progress: 0 },
+  { id: 'chat_100', name: '聊天大師', desc: '發送100條訊息', icon: '🎤', target: 100, progress: 0 },
+  { id: 'level_5', name: '小有名氣', desc: '達到5級', icon: '⭐', target: 5, progress: 0 },
+  { id: 'level_10', name: '知名人士', desc: '達到10級', icon: '🌟', target: 10, progress: 0 },
+  { id: 'level_20', name: '傳奇人物', desc: '達到20級', icon: '✨', target: 20, progress: 0 },
+  { id: 'vote_create', name: '民主先鋒', desc: '發起一次投票', icon: '🗳️', target: 1, progress: 0 },
+  { id: 'quiz_create', name: '出題者', desc: '發起一次搶答', icon: '🧠', target: 1, progress: 0 },
+  { id: 'reaction_send', name: '反應靈敏', desc: '發送10個表情回應', icon: '😊', target: 10, progress: 0 },
+  { id: 'voice_use', name: '語音達人', desc: '使用5次語音訊息', icon: '🎙️', target: 5, progress: 0 },
+  { id: 'image_send', name: '攝影師', desc: '發送10張圖片', icon: '📷', target: 10, progress: 0 }
+];
+
+// 從 localStorage 載入成就進度
+achievements.forEach(ach => {
+  ach.progress = parseInt(localStorage.getItem(`ach_${ach.id}`) || '0');
+});
+
 // 語音設定變數
 let voiceLang = localStorage.getItem('voiceLang') || 'cmn-Hant-TW';
 let voiceContinuous = localStorage.getItem('voiceContinuous') === 'true';
@@ -664,6 +977,26 @@ function login() {
     localStorage.setItem("chatAvatar", myAvatar);
     loginWindow.style.display = 'none';
     chatWindow.style.display = 'block';
+    
+    // 初始化用戶等級 UI
+    updateUserLevelUI();
+    
+    // 更新側邊欄頭像和暱稱
+    const userAvatarSidebar = document.getElementById('user-avatar-sidebar');
+    if (myAvatar.startsWith('http') || myAvatar.startsWith('data:')) {
+      userAvatarSidebar.src = myAvatar;
+    } else {
+      const canvas = document.createElement('canvas');
+      canvas.width = 40; canvas.height = 40;
+      const ctx = canvas.getContext('2d');
+      ctx.font = '30px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(myAvatar, 20, 23);
+      userAvatarSidebar.src = canvas.toDataURL();
+    }
+    document.getElementById('user-nickname-sidebar').textContent = myNickname;
+    
     initWS();
   } else {
     alert('請輸入暱稱並選擇頭像！');
@@ -681,6 +1014,7 @@ function initWS() {
   };
   ws.onmessage = event => {
     const msg = JSON.parse(event.data);
+    console.log('[DEBUG] Received message:', msg);
     handleIncoming(msg);
   };
   ws.onclose = () => {
@@ -694,6 +1028,7 @@ function initWS() {
 }
 
 function handleIncoming(msg) {
+  console.log('[DEBUG] Handling message type:', msg.type);
   switch (msg.type) {
     case 'online_count':
       document.getElementById('online-count').textContent = msg.content;
@@ -762,34 +1097,46 @@ function handleIncoming(msg) {
 }
 
 function sendMsg() {
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    alert('連線尚未建立，請稍後再試！');
+    return;
+  }
+  
   const content = messageInput.value.trim();
   if (imageToSend) {
     const msgData = {
       type: 'image', room: currentRoom, nickname: myNickname, avatar: myAvatar,
-      content: imageToSend, timestamp: new Date().toISOString()
+      content: imageToSend, timestamp: new Date().toISOString(),
+      level: userLevel, title: userTitle
     };
     if (replyToMessage) msgData.replyTo = replyToMessage;
     ws.send(JSON.stringify(msgData));
     document.getElementById('cancel-image').onclick();
     cancelReply();
+    onMessageSent('image');
   } else if (audioToSend) {
     const msgData = {
       type: 'voice', room: currentRoom, nickname: myNickname, avatar: myAvatar,
-      content: audioToSend, transcript: content, timestamp: new Date().toISOString()
+      content: audioToSend, transcript: content, timestamp: new Date().toISOString(),
+      level: userLevel, title: userTitle
     };
     if (replyToMessage) msgData.replyTo = replyToMessage;
     ws.send(JSON.stringify(msgData));
     document.getElementById('cancel-audio').onclick();
     cancelReply();
+    onMessageSent('voice');
   } else if (content) {
     const msgData = {
       type: 'chat', room: currentRoom, nickname: myNickname, avatar: myAvatar,
-      content: content, timestamp: new Date().toISOString()
+      content: content, timestamp: new Date().toISOString(),
+      level: userLevel, title: userTitle
     };
     if (replyToMessage) msgData.replyTo = replyToMessage;
+    console.log('[DEBUG] Sending message:', msgData);
     ws.send(JSON.stringify(msgData));
     messageInput.value = '';
     cancelReply();
+    onMessageSent('chat');
   }
 }
 messageInput.addEventListener('keydown', e => {
@@ -853,6 +1200,8 @@ function closeModals() {
   if (voiceSettingsModal) voiceSettingsModal.style.display = 'none';
   const markdownHelpModal = document.getElementById('markdown-help-modal');
   if (markdownHelpModal) markdownHelpModal.style.display = 'none';
+  const profileModal = document.getElementById('profile-modal');
+  if (profileModal) profileModal.style.display = 'none';
 }
 
 function submitCreateRoom() {
@@ -934,15 +1283,46 @@ function renderMessage(msg) {
   li.appendChild(avatar);
   const body = document.createElement('div'); body.className = 'msg-body';
   const header = document.createElement('div'); header.className = 'msg-header';
-  header.textContent = msg.nickname; body.appendChild(header);
+  header.innerHTML = msg.nickname;
+  
+  // 添加等級徽章
+  if (msg.level) {
+    const levelBadge = document.createElement('span');
+    levelBadge.className = 'level-badge';
+    levelBadge.textContent = `Lv.${msg.level}`;
+    header.appendChild(levelBadge);
+  }
+  
+  // 添加稱號徽章
+  if (msg.title) {
+    const titleBadge = document.createElement('span');
+    titleBadge.className = 'title-badge';
+    titleBadge.textContent = msg.title;
+    header.appendChild(titleBadge);
+  }
+  
+  body.appendChild(header);
   
   // 如果有引用的訊息，先顯示引用
   if (msg.replyTo) {
     const quotedDiv = document.createElement('div');
     quotedDiv.className = 'quoted-message';
+    
+    let quotedContent = msg.replyTo.content || '';
+    // 如果沒有 content，根據類型顯示預設文字
+    if (!quotedContent) {
+      if (msg.replyTo.type === 'image') {
+        quotedContent = '🖼️ 圖片';
+      } else if (msg.replyTo.type === 'voice') {
+        quotedContent = '🎤 語音訊息';
+      } else {
+        quotedContent = '訊息';
+      }
+    }
+    
     quotedDiv.innerHTML = `
-      <div class="quoted-author">@${msg.replyTo.nickname}</div>
-      <div class="quoted-content">${escapeHtml(msg.replyTo.content || '圖片/語音訊息')}</div>
+      <div class="quoted-author">@${escapeHtml(msg.replyTo.nickname)}</div>
+      <div class="quoted-content">${escapeHtml(quotedContent)}</div>
     `;
     body.appendChild(quotedDiv);
   }
@@ -1125,6 +1505,7 @@ function submitQuiz() {
   closeModals();
   document.getElementById('quiz-question').value = '';
   document.getElementById('quiz-answer').value = '';
+  onMessageSent('quiz_start');
 }
 function submitVote() {
   const question = document.getElementById('vote-question').value;
@@ -1142,6 +1523,7 @@ function submitVote() {
   }));
   closeModals();
   document.getElementById('vote-question').value = '';
+  onMessageSent('vote');
   document.getElementById('vote-options').value = '';
 }
 // (舊的投票/搶答函式 renderVote, sendVote... 等與上一版相同)
@@ -1218,6 +1600,8 @@ function sendReaction(messageId, emoji) {
   ws.send(JSON.stringify({
     type: 'reaction', room: currentRoom, content: messageId, emoji: emoji
   }));
+  updateAchievementProgress('reaction_send', 1);
+  checkAchievements();
 }
 function normalize(s) {
   return (s || '').trim().toLowerCase()
@@ -1363,16 +1747,27 @@ function autoReadMessage(msg) {
 
 // 設定引用訊息
 function setReplyTo(msg) {
+  let displayContent = msg.content;
+  
+  // 根據訊息類型決定顯示內容
+  if (msg.type === 'image') {
+    displayContent = '🖼️ 圖片';
+  } else if (msg.type === 'voice') {
+    // 如果語音訊息有轉文字內容，顯示它；否則顯示 "語音訊息"
+    displayContent = msg.transcript ? `🎤 "${msg.transcript}"` : '🎤 語音訊息';
+  }
+  
   replyToMessage = {
     timestamp: msg.timestamp,
     nickname: msg.nickname,
-    content: msg.content || (msg.type === 'image' ? '圖片' : '語音訊息')
+    content: displayContent,
+    type: msg.type
   };
   
   const replyPreview = document.getElementById('reply-preview');
   replyPreview.style.display = 'block';
   replyPreview.querySelector('.reply-author').textContent = `回覆 @${msg.nickname}`;
-  replyPreview.querySelector('.reply-content').textContent = replyToMessage.content;
+  replyPreview.querySelector('.reply-content').textContent = displayContent;
   messageInput.focus();
 }
 
@@ -1395,6 +1790,235 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+// === 等級系統功能 ===
+
+// 獲取當前等級所需經驗
+function getExpForLevel(level) {
+  if (level <= 0 || level > expTable.length) return expTable[expTable.length - 1];
+  return expTable[level - 1];
+}
+
+// 添加經驗值
+function addExp(amount) {
+  userExp += amount;
+  const requiredExp = getExpForLevel(userLevel);
+  
+  // 檢查是否升級
+  if (userExp >= requiredExp) {
+    userExp -= requiredExp;
+    userLevel++;
+    localStorage.setItem('userLevel', userLevel);
+    showLevelUpAnimation();
+    checkAchievements();
+    checkTitles();
+  }
+  
+  localStorage.setItem('userExp', userExp);
+  updateUserLevelUI();
+}
+
+// 顯示升級動畫
+function showLevelUpAnimation() {
+  const animation = document.createElement('div');
+  animation.className = 'level-up-animation';
+  animation.innerHTML = `🎉 升級了！<br>Lv.${userLevel}`;
+  document.body.appendChild(animation);
+  
+  setTimeout(() => {
+    animation.remove();
+  }, 2000);
+  
+  // 播放音效（如果有）
+  addSystemMessage(`🎊 恭喜！你升到了 Lv.${userLevel}！`);
+}
+
+// 更新用戶等級 UI
+function updateUserLevelUI() {
+  const requiredExp = getExpForLevel(userLevel);
+  const expPercent = (userExp / requiredExp * 100).toFixed(1);
+  
+  // 更新側邊欄
+  document.getElementById('user-level-badge').textContent = `Lv.${userLevel}`;
+  document.getElementById('user-exp-bar').style.width = `${expPercent}%`;
+  document.getElementById('user-exp-text').textContent = `${userExp}/${requiredExp} EXP`;
+  
+  if (userTitle) {
+    document.getElementById('user-title-badge').textContent = userTitle;
+    document.getElementById('user-title-badge').style.display = 'inline-block';
+  }
+}
+
+// 檢查並解鎖成就
+function checkAchievements() {
+  achievements.forEach(ach => {
+    if (ach.id.startsWith('chat_')) {
+      ach.progress = totalMessages;
+    } else if (ach.id.startsWith('level_')) {
+      ach.progress = userLevel;
+    }
+    
+    // 檢查是否完成
+    if (ach.progress >= ach.target && !unlockedBadges.includes(ach.id)) {
+      unlockAchievement(ach);
+    }
+    
+    // 保存進度
+    localStorage.setItem(`ach_${ach.id}`, ach.progress);
+  });
+}
+
+// 解鎖成就
+function unlockAchievement(achievement) {
+  unlockedBadges.push(achievement.id);
+  localStorage.setItem('unlockedBadges', JSON.stringify(unlockedBadges));
+  
+  // 顯示解鎖通知
+  addSystemMessage(`🏆 解鎖成就：${achievement.icon} ${achievement.name}！`);
+  
+  // 獎勵經驗值
+  addExp(50);
+}
+
+// 檢查稱號
+function checkTitles() {
+  for (const [key, title] of Object.entries(titles)) {
+    if (title.condition() && userTitle !== title.name) {
+      userTitle = title.name;
+      localStorage.setItem('userTitle', userTitle);
+      addSystemMessage(`🎖️ 獲得新稱號：${title.name}！`);
+      updateUserLevelUI();
+      break;
+    }
+  }
+}
+
+// 顯示個人資料
+function showProfileModal() {
+  modalBackdrop.style.display = 'block';
+  document.getElementById('profile-modal').style.display = 'block';
+  
+  // 更新個人資料
+  const profileAvatar = document.getElementById('profile-avatar');
+  if (myAvatar.startsWith('http') || myAvatar.startsWith('data:')) {
+    profileAvatar.src = myAvatar;
+  } else {
+    const canvas = document.createElement('canvas');
+    canvas.width = 80; canvas.height = 80;
+    const ctx = canvas.getContext('2d');
+    ctx.font = '60px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(myAvatar, 40, 46);
+    profileAvatar.src = canvas.toDataURL();
+  }
+  
+  document.getElementById('profile-nickname').textContent = myNickname;
+  document.getElementById('profile-level-badge').textContent = `Lv.${userLevel}`;
+  document.getElementById('profile-title').textContent = userTitle || '無稱號';
+  document.getElementById('profile-title').style.display = userTitle ? 'inline-block' : 'none';
+  
+  const requiredExp = getExpForLevel(userLevel);
+  const expPercent = (userExp / requiredExp * 100).toFixed(1);
+  document.getElementById('profile-exp-bar').style.width = `${expPercent}%`;
+  document.getElementById('profile-exp-text').textContent = `${userExp}/${requiredExp} EXP`;
+  
+  // 統計資料
+  document.getElementById('stat-level').textContent = userLevel;
+  document.getElementById('stat-messages').textContent = totalMessages;
+  document.getElementById('stat-badges').textContent = unlockedBadges.length;
+  
+  // 渲染成就列表
+  renderAchievements();
+  
+  // 渲染徽章
+  renderBadges();
+}
+
+// 渲染成就列表
+function renderAchievements() {
+  const list = document.getElementById('achievement-list');
+  list.innerHTML = '';
+  
+  achievements.forEach(ach => {
+    const unlocked = ach.progress >= ach.target;
+    const progress = Math.min(100, (ach.progress / ach.target * 100)).toFixed(0);
+    
+    const item = document.createElement('div');
+    item.className = `achievement-item ${unlocked ? 'unlocked' : ''}`;
+    item.innerHTML = `
+      <div class="achievement-icon">${ach.icon}</div>
+      <div class="achievement-info">
+        <div class="achievement-name">${ach.name}</div>
+        <div class="achievement-desc">${ach.desc}</div>
+        <div class="achievement-progress">
+          <div class="achievement-progress-fill" style="width: ${progress}%;"></div>
+        </div>
+        <div style="font-size: 0.75em; opacity: 0.7; margin-top: 4px;">
+          ${ach.progress}/${ach.target} ${unlocked ? '✓ 已完成' : ''}
+        </div>
+      </div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+// 渲染徽章
+function renderBadges() {
+  const grid = document.getElementById('badges-grid');
+  grid.innerHTML = '';
+  
+  achievements.forEach(ach => {
+    const unlocked = unlockedBadges.includes(ach.id);
+    const item = document.createElement('div');
+    item.className = `badge-item ${unlocked ? '' : 'locked'}`;
+    item.innerHTML = `
+      <div class="badge-icon">${ach.icon}</div>
+      <div class="badge-name">${ach.name}</div>
+    `;
+    if (unlocked) {
+      item.title = ach.desc;
+    }
+    grid.appendChild(item);
+  });
+}
+
+// 訊息發送時增加經驗和統計
+function onMessageSent(type) {
+  totalMessages++;
+  localStorage.setItem('totalMessages', totalMessages);
+  
+  // 根據訊息類型給予不同經驗
+  let expGain = 10;
+  if (type === 'image') expGain = 15;
+  if (type === 'voice') expGain = 20;
+  if (type === 'vote' || type === 'quiz_start') expGain = 25;
+  
+  addExp(expGain);
+  
+  // 更新成就進度
+  updateAchievementProgress('first_msg', 1);
+  updateAchievementProgress('chat_10', 1);
+  updateAchievementProgress('chat_50', 1);
+  updateAchievementProgress('chat_100', 1);
+  
+  if (type === 'image') updateAchievementProgress('image_send', 1);
+  if (type === 'voice') updateAchievementProgress('voice_use', 1);
+  if (type === 'vote') updateAchievementProgress('vote_create', 1);
+  if (type === 'quiz_start') updateAchievementProgress('quiz_create', 1);
+  
+  checkAchievements();
+  checkTitles();
+}
+
+// 更新成就進度
+function updateAchievementProgress(achId, increment = 1) {
+  const ach = achievements.find(a => a.id === achId);
+  if (ach && ach.progress < ach.target) {
+    ach.progress = Math.min(ach.progress + increment, ach.target);
+    localStorage.setItem(`ach_${achId}`, ach.progress);
+  }
+}
+
 function checkExistingLogin() {
   const storedUser = localStorage.getItem("chatUser");
   const storedAvatar = localStorage.getItem("chatAvatar");
@@ -1403,6 +2027,24 @@ function checkExistingLogin() {
     myAvatar = storedAvatar;
     loginWindow.style.display = 'none';
     chatWindow.style.display = 'block';
+    
+    // 初始化用戶等級 UI
+    updateUserLevelUI();
+    const userAvatarSidebar = document.getElementById('user-avatar-sidebar');
+    if (myAvatar.startsWith('http') || myAvatar.startsWith('data:')) {
+      userAvatarSidebar.src = myAvatar;
+    } else {
+      const canvas = document.createElement('canvas');
+      canvas.width = 40; canvas.height = 40;
+      const ctx = canvas.getContext('2d');
+      ctx.font = '30px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(myAvatar, 20, 23);
+      userAvatarSidebar.src = canvas.toDataURL();
+    }
+    document.getElementById('user-nickname-sidebar').textContent = myNickname;
+    
     initWS();
   }
 }
