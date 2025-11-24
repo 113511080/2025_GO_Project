@@ -224,6 +224,9 @@ textarea {
           <label for="voiceInput" class="button" id="voiceBtn">🎤 語音 (按住)</label>
           <input type="checkbox" id="voiceInput">
           <span id="rec-status"></span>
+          <span id="interim-result" style="margin-left: 10px; font-style: italic; opacity: 0.7;"></span>
+          <button onclick="showVoiceSettingsModal()">⚙️ 語音設定</button>
+          <button onclick="toggleTTS()" id="tts-toggle">🔊 朗讀</button>
           <button onclick="showQuizModal()">🧠 出題搶答</button>
           <button onclick="showVoteModal()">📊 發起投票</button>
         </div>
@@ -274,6 +277,63 @@ textarea {
   <label for="modal-room-pass">密碼 (可選)：</label>
   <input type="password" id="modal-room-pass" placeholder="為您的房間設定密碼...">
   <button onclick="submitCreateRoom()" style="margin-top: 15px; width: 100%;">確認</button>
+</div>
+
+<div id="voice-settings-modal" class="modal">
+  <button class="modal-close-btn" onclick="closeModals()">&times;</button>
+  <h4>⚙️ 語音設定</h4>
+  
+  <label for="voice-lang">辨識語言：</label>
+  <select id="voice-lang" style="width: 100%; padding: 10px; margin: 6px; border-radius: 8px; background: #1a1a2e; color: #fff; border: 1px solid rgba(255,255,255,0.3);">
+    <option value="cmn-Hant-TW" style="background: #1a1a2e; color: #fff;">繁體中文 (台灣)</option>
+    <option value="zh-CN" style="background: #1a1a2e; color: #fff;">簡體中文</option>
+    <option value="en-US" style="background: #1a1a2e; color: #fff;">English (US)</option>
+    <option value="en-GB" style="background: #1a1a2e; color: #fff;">English (UK)</option>
+    <option value="ja-JP" style="background: #1a1a2e; color: #fff;">日本語</option>
+    <option value="ko-KR" style="background: #1a1a2e; color: #fff;">한국어</option>
+    <option value="es-ES" style="background: #1a1a2e; color: #fff;">Español</option>
+    <option value="fr-FR" style="background: #1a1a2e; color: #fff;">Français</option>
+    <option value="de-DE" style="background: #1a1a2e; color: #fff;">Deutsch</option>
+  </select>
+  
+  <label style="margin-top: 15px;">
+    <input type="checkbox" id="voice-continuous" style="width: auto; margin-right: 8px;">
+    連續辨識模式
+  </label>
+  
+  <label style="margin-top: 10px;">
+    <input type="checkbox" id="voice-interim" checked style="width: auto; margin-right: 8px;">
+    顯示即時辨識結果
+  </label>
+  
+  <label style="margin-top: 10px;">
+    <input type="checkbox" id="voice-commands" checked style="width: auto; margin-right: 8px;">
+    啟用語音命令
+  </label>
+  
+  <div style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+    <strong>可用語音命令：</strong><br>
+    <small style="opacity: 0.8;">
+      • 「發送」或「送出」- 發送訊息<br>
+      • 「清除」- 清除輸入<br>
+      • 「搶答」- 開啟搶答<br>
+      • 「投票」- 開啟投票<br>
+      • 「朗讀」- 切換朗讀功能
+    </small>
+  </div>
+  
+  <label for="tts-voice" style="margin-top: 15px;">朗讀語音：</label>
+  <select id="tts-voice" style="width: 100%; padding: 10px; margin: 6px; border-radius: 8px; background: #1a1a2e; color: #fff; border: 1px solid rgba(255,255,255,0.3);">
+  </select>
+  
+  <label for="tts-rate" style="margin-top: 15px;">朗讀速度：<span id="rate-value">1.0</span></label>
+  <input type="range" id="tts-rate" min="0.5" max="2" step="0.1" value="1" style="width: 100%;">
+  
+  <label for="tts-pitch" style="margin-top: 10px;">朗讀音調：<span id="pitch-value">1.0</span></label>
+  <input type="range" id="tts-pitch" min="0.5" max="2" step="0.1" value="1" style="width: 100%;">
+  
+  <button onclick="testTTS()" style="margin-top: 15px; width: 100%;">🔊 測試朗讀</button>
+  <button onclick="saveVoiceSettings()" style="margin-top: 10px; width: 100%; background: rgba(135, 206, 250, 0.4);">💾 儲存設定</button>
 </div>
 
 <script>
@@ -359,6 +419,18 @@ let audioChunks = [];
 let imageToSend = null;
 let audioToSend = null; 
 let audioTranscript = null;
+
+// 語音設定變數
+let voiceLang = localStorage.getItem('voiceLang') || 'cmn-Hant-TW';
+let voiceContinuous = localStorage.getItem('voiceContinuous') === 'true';
+let voiceInterim = localStorage.getItem('voiceInterim') !== 'false'; // 預設開啟
+let voiceCommands = localStorage.getItem('voiceCommands') !== 'false'; // 預設開啟
+let ttsEnabled = localStorage.getItem('ttsEnabled') === 'true';
+let ttsRate = parseFloat(localStorage.getItem('ttsRate')) || 1.0;
+let ttsPitch = parseFloat(localStorage.getItem('ttsPitch')) || 1.0;
+let ttsVoiceName = localStorage.getItem('ttsVoiceName') || '';
+let speechSynthesis = window.speechSynthesis;
+let availableVoices = [];
 
 function goToGame(url) {
   localStorage.setItem('lastRoom', currentRoom);
@@ -472,8 +544,6 @@ function handleIncoming(msg) {
         li.classList.toggle('active', li.dataset.room === currentRoom);
       });
       break;
-    case 'chat': case 'image': case 'voice':
-      renderMessage(msg); break;
     case 'chat': case 'image': case 'voice':
       renderMessage(msg); break;
     case 'join': case 'leave': case 'switch':
@@ -595,6 +665,8 @@ function closeModals() {
   quizModal.style.display = 'none';
   voteModal.style.display = 'none';
   createRoomModal.style.display = 'none';
+  const voiceSettingsModal = document.getElementById('voice-settings-modal');
+  if (voiceSettingsModal) voiceSettingsModal.style.display = 'none';
 }
 
 function submitCreateRoom() {
@@ -702,6 +774,9 @@ function renderMessage(msg) {
   li.appendChild(body);
   messagesEl.appendChild(li);
   messagesEl.scrollTop = messagesEl.scrollHeight;
+  
+  // 自動朗讀訊息
+  autoReadMessage(msg);
 }
 function renderVoiceMessage(content, msg) {
   const audio = new Audio(msg.content);
@@ -736,9 +811,35 @@ function addSystemMessage(text) {
 }
 if ('MediaRecorder' in window && 'webkitSpeechRecognition' in window) {
   const recognition = new webkitSpeechRecognition();
-  recognition.continuous = false; recognition.lang = 'cmn-Hant-TW'; recognition.interimResults = false;
+  recognition.continuous = voiceContinuous;
+  recognition.lang = voiceLang;
+  recognition.interimResults = voiceInterim;
   let finalTranscript = '';
-  recognition.onresult = event => { finalTranscript = event.results[0][0].transcript; };
+  let interimTranscript = '';
+  
+  recognition.onresult = event => {
+    interimTranscript = '';
+    finalTranscript = '';
+    
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        finalTranscript += transcript;
+      } else {
+        interimTranscript += transcript;
+      }
+    }
+    
+    // 顯示即時辨識結果
+    if (voiceInterim) {
+      document.getElementById('interim-result').textContent = interimTranscript;
+    }
+    
+    // 處理語音命令
+    if (voiceCommands && finalTranscript) {
+      handleVoiceCommand(finalTranscript);
+    }
+  };
   const startRec = () => {
     if (imageToSend) return;
     audioChunks = [];
@@ -750,6 +851,7 @@ if ('MediaRecorder' in window && 'webkitSpeechRecognition' in window) {
     recStatus.classList.remove('rec'); voiceBtn.textContent = '🎤 語音 (按住)';
   };
   recognition.onend = () => {
+    document.getElementById('interim-result').textContent = '';
     if (audioChunks.length === 0) {
         finalTranscript = ''; return;
     }
@@ -767,6 +869,7 @@ if ('MediaRecorder' in window && 'webkitSpeechRecognition' in window) {
     reader.readAsDataURL(audioBlob);
     audioChunks = [];
     finalTranscript = '';
+    interimTranscript = '';
   };
   navigator.mediaDevices.getUserMedia({ audio: true })
     .then(stream => {
@@ -791,12 +894,6 @@ function showVoteModal() {
   modalBackdrop.style.display = 'block';
   voteModal.style.display = 'block';
   document.getElementById('vote-question').focus();
-}
-function closeModals() {
-  modalBackdrop.style.display = 'none';
-  quizModal.style.display = 'none';
-  voteModal.style.display = 'none';
-  createRoomModal.style.display = 'none';
 }
 function submitQuiz() {
   const question = document.getElementById('quiz-question').value;
@@ -910,6 +1007,143 @@ function normalize(s) {
     .replace(/[！。？，]/g, m => ({'！':'!','。':'.','？':'?','，':','}[m]));
 }
 
+// 語音命令處理
+function handleVoiceCommand(text) {
+  const normalized = text.toLowerCase().trim();
+  
+  if (normalized.includes('發送') || normalized.includes('送出') || normalized.includes('send')) {
+    sendMsg();
+  } else if (normalized.includes('清除') || normalized.includes('clear')) {
+    messageInput.value = '';
+  } else if (normalized.includes('搶答') || normalized.includes('quiz')) {
+    showQuizModal();
+  } else if (normalized.includes('投票') || normalized.includes('vote')) {
+    showVoteModal();
+  } else if (normalized.includes('朗讀') || normalized.includes('tts')) {
+    toggleTTS();
+  }
+}
+
+// 顯示語音設定 Modal
+function showVoiceSettingsModal() {
+  modalBackdrop.style.display = 'block';
+  document.getElementById('voice-settings-modal').style.display = 'block';
+  
+  // 載入當前設定
+  document.getElementById('voice-lang').value = voiceLang;
+  document.getElementById('voice-continuous').checked = voiceContinuous;
+  document.getElementById('voice-interim').checked = voiceInterim;
+  document.getElementById('voice-commands').checked = voiceCommands;
+  document.getElementById('tts-rate').value = ttsRate;
+  document.getElementById('tts-pitch').value = ttsPitch;
+  document.getElementById('rate-value').textContent = ttsRate;
+  document.getElementById('pitch-value').textContent = ttsPitch;
+  
+  // 載入可用的 TTS 語音
+  loadTTSVoices();
+}
+
+// 載入可用的 TTS 語音
+function loadTTSVoices() {
+  availableVoices = speechSynthesis.getVoices();
+  const select = document.getElementById('tts-voice');
+  select.innerHTML = '';
+  
+  availableVoices.forEach((voice, index) => {
+    const option = document.createElement('option');
+    option.value = voice.name;
+    option.textContent = `${voice.name} (${voice.lang})`;
+    option.style.background = '#1a1a2e';
+    option.style.color = '#fff';
+    if (voice.name === ttsVoiceName || (index === 0 && !ttsVoiceName)) {
+      option.selected = true;
+    }
+    select.appendChild(option);
+  });
+}
+
+// 儲存語音設定
+function saveVoiceSettings() {
+  voiceLang = document.getElementById('voice-lang').value;
+  voiceContinuous = document.getElementById('voice-continuous').checked;
+  voiceInterim = document.getElementById('voice-interim').checked;
+  voiceCommands = document.getElementById('voice-commands').checked;
+  ttsRate = parseFloat(document.getElementById('tts-rate').value);
+  ttsPitch = parseFloat(document.getElementById('tts-pitch').value);
+  ttsVoiceName = document.getElementById('tts-voice').value;
+  
+  // 儲存到 localStorage
+  localStorage.setItem('voiceLang', voiceLang);
+  localStorage.setItem('voiceContinuous', voiceContinuous);
+  localStorage.setItem('voiceInterim', voiceInterim);
+  localStorage.setItem('voiceCommands', voiceCommands);
+  localStorage.setItem('ttsRate', ttsRate);
+  localStorage.setItem('ttsPitch', ttsPitch);
+  localStorage.setItem('ttsVoiceName', ttsVoiceName);
+  
+  // 更新語音辨識設定
+  if (typeof recognition !== 'undefined') {
+    recognition.lang = voiceLang;
+    recognition.continuous = voiceContinuous;
+    recognition.interimResults = voiceInterim;
+  }
+  
+  closeModals();
+  addSystemMessage('✅ 語音設定已儲存');
+}
+
+// 測試 TTS
+function testTTS() {
+  const text = '這是語音朗讀測試。';
+  speakText(text);
+}
+
+// 切換 TTS
+function toggleTTS() {
+  ttsEnabled = !ttsEnabled;
+  localStorage.setItem('ttsEnabled', ttsEnabled);
+  const btn = document.getElementById('tts-toggle');
+  btn.textContent = ttsEnabled ? '🔊 朗讀 (開)' : '🔇 朗讀 (關)';
+  btn.style.background = ttsEnabled ? 'rgba(0, 255, 127, 0.3)' : 'rgba(255,255,255,0.1)';
+  addSystemMessage(ttsEnabled ? '✅ 訊息朗讀已開啟' : '🔇 訊息朗讀已關閉');
+}
+
+// 朗讀文字
+function speakText(text) {
+  if (!speechSynthesis) return;
+  
+  // 停止當前朗讀
+  speechSynthesis.cancel();
+  
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = ttsRate;
+  utterance.pitch = ttsPitch;
+  
+  // 選擇語音
+  if (ttsVoiceName) {
+    const voice = availableVoices.find(v => v.name === ttsVoiceName);
+    if (voice) utterance.voice = voice;
+  }
+  
+  speechSynthesis.speak(utterance);
+}
+
+// 在接收訊息時自動朗讀
+function autoReadMessage(msg) {
+  if (!ttsEnabled || msg.type === 'system') return;
+  
+  let textToRead = '';
+  if (msg.type === 'chat') {
+    textToRead = `${msg.nickname}說：${msg.content}`;
+  } else if (msg.type === 'voice' && msg.transcript) {
+    textToRead = `${msg.nickname}的語音：${msg.transcript}`;
+  }
+  
+  if (textToRead) {
+    speakText(textToRead);
+  }
+}
+
 function checkExistingLogin() {
   const storedUser = localStorage.getItem("chatUser");
   const storedAvatar = localStorage.getItem("chatAvatar");
@@ -921,6 +1155,38 @@ function checkExistingLogin() {
     initWS();
   }
 }
+
+// 初始化 TTS
+if (speechSynthesis) {
+  speechSynthesis.onvoiceschanged = loadTTSVoices;
+  loadTTSVoices();
+  
+  // 設定 TTS 按鈕狀態
+  const ttsBtn = document.getElementById('tts-toggle');
+  if (ttsBtn) {
+    ttsBtn.textContent = ttsEnabled ? '🔊 朗讀 (開)' : '🔇 朗讀 (關)';
+    ttsBtn.style.background = ttsEnabled ? 'rgba(0, 255, 127, 0.3)' : 'rgba(255,255,255,0.1)';
+  }
+}
+
+// 設定滑桿即時更新
+document.addEventListener('DOMContentLoaded', () => {
+  const rateSlider = document.getElementById('tts-rate');
+  const pitchSlider = document.getElementById('tts-pitch');
+  
+  if (rateSlider) {
+    rateSlider.oninput = function() {
+      document.getElementById('rate-value').textContent = this.value;
+    };
+  }
+  
+  if (pitchSlider) {
+    pitchSlider.oninput = function() {
+      document.getElementById('pitch-value').textContent = this.value;
+    };
+  }
+});
+
 window.onload = checkExistingLogin;
 
 </script>
