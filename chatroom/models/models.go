@@ -15,6 +15,13 @@ type Client struct {
 	Avatar   string
 }
 
+// ReplyTo 引用訊息結構
+type ReplyTo struct {
+	Timestamp string `json:"timestamp"`
+	Nickname  string `json:"nickname"`
+	Content   string `json:"content"`
+}
+
 // Message
 type Message struct {
 	Room       string          `json:"room"`
@@ -37,6 +44,7 @@ type Message struct {
 	LineWidth  int             `json:"lineWidth,omitempty"`
 	Password   string          `json:"password,omitempty"`
 	RoomInfo   map[string]bool `json:"roomInfo,omitempty"`
+	ReplyTo    *ReplyTo        `json:"replyTo,omitempty"` // 引用訊息
 }
 
 // Quiz
