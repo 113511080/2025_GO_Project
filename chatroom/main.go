@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
@@ -22,6 +23,11 @@ func main() {
 	http.Handle("/", fs)
 	http.HandleFunc("/ws", wsHandler.HandleConnections)
 
-	fmt.Println("Server started on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	fmt.Printf("Server started on :%s\n", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
