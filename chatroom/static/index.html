@@ -596,6 +596,7 @@ textarea {
           <button onclick="showQuizModal()">🧠 出題搶答</button>
           <button onclick="showVoteModal()">📊 發起投票</button>
           <button onclick="showStickerModal()">😊 貼圖</button>
+          <button onclick="showGifModal()">🎬 GIF</button>
         </div>
         <div id="reply-preview" class="reply-preview">
           <button class="reply-close" onclick="cancelReply()">×</button>
@@ -619,7 +620,7 @@ textarea {
   </div>
 </div>
 
-<div id="modal-backdrop" onclick="closeModals()"></div>
+<div id="modal-backdrop"></div>
 
 <div id="quiz-modal" class="modal">
   <button class="modal-close-btn" onclick="closeModals()">&times;</button>
@@ -650,6 +651,24 @@ textarea {
   <button class="modal-close-btn" onclick="closeModals()">&times;</button>
   <h4>😊 選擇貼圖</h4>
   <div id="sticker-grid" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; max-height: 400px; overflow-y: auto;"></div>
+</div>
+
+<!-- GIF 搜尋 Modal -->
+<div id="gif-modal" class="modal" style="max-width: 700px;">
+  <button class="modal-close-btn" onclick="closeModals()">&times;</button>
+  <h4>🎬 搜尋 GIF</h4>
+  <div style="display: flex; gap: 5px; margin-bottom: 15px;">
+    <input type="text" id="gif-search-input" placeholder="輸入關鍵字搜尋 GIF..." style="flex: 1;">
+    <button onclick="searchGifs()" style="width: auto; padding: 8px 20px;">🔍 搜尋</button>
+  </div>
+  <div id="gif-results" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-height: 450px; overflow-y: auto;">
+    <div style="grid-column: 1 / -1; text-align: center; padding: 20px; opacity: 0.6;">
+      輸入關鍵字開始搜尋 GIF，或查看下方熱門 GIF
+    </div>
+  </div>
+  <div style="margin-top: 10px; font-size: 0.8em; opacity: 0.5; text-align: center;">
+    Powered by Tenor
+  </div>
 </div>
 
 <div id="create-room-modal" class="modal">
@@ -949,6 +968,13 @@ function logout() {
   location.reload();
 }
 
+// 設定 backdrop 點擊事件（只在點擊背景時關閉，不會影響內容點擊）
+modalBackdrop.addEventListener('click', (e) => {
+  if (e.target === modalBackdrop) {
+    closeModals();
+  }
+});
+
 // (頭像邏輯與上一版相同)
 const avatars = ['😀','😎','🚀','🤖','🧠','🎨','🎮','🏆','💡','📊'];
 avatars.forEach(a => {
@@ -1084,7 +1110,7 @@ function handleIncoming(msg) {
         li.classList.toggle('active', li.dataset.room === currentRoom);
       });
       break;
-    case 'chat': case 'image': case 'voice':
+    case 'chat': case 'image': case 'voice': case 'gif':
       renderMessage(msg); break;
     case 'join': case 'leave': case 'switch':
       addSystemMessage(msg.content); break;
@@ -1234,6 +1260,8 @@ function closeModals() {
   if (profileModal) profileModal.style.display = 'none';
   const stickerModal = document.getElementById('sticker-modal');
   if (stickerModal) stickerModal.style.display = 'none';
+  const gifModal = document.getElementById('gif-modal');
+  if (gifModal) gifModal.style.display = 'none';
 }
 
 function submitCreateRoom() {
@@ -1303,9 +1331,9 @@ function renderMessage(msg) {
   
   const avatar = document.createElement('img');
   avatar.className = 'msg-avatar';
-  if (msg.avatar.startsWith('http') || msg.avatar.startsWith('data:')) {
+  if (msg.avatar && (msg.avatar.startsWith('http') || msg.avatar.startsWith('data:'))) {
     avatar.src = msg.avatar;
-  } else {
+  } else if (msg.avatar) {
     const canvas = document.createElement('canvas'); canvas.width = 64; canvas.height = 64;
     const ctx = canvas.getContext('2d'); ctx.font = '48px sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -1389,6 +1417,13 @@ function renderMessage(msg) {
       img.onload = () => messagesEl.scrollTop = messagesEl.scrollHeight;
       content.appendChild(img);
       break;
+    case 'gif':
+      const gifImg = document.createElement('img'); gifImg.src = msg.content;
+      gifImg.style.maxWidth = '100%'; gifImg.style.maxHeight = '300px'; gifImg.style.borderRadius = '8px';
+      gifImg.alt = msg.title || 'GIF';
+      gifImg.onload = () => messagesEl.scrollTop = messagesEl.scrollHeight;
+      content.appendChild(gifImg);
+      break;
     case 'voice': renderVoiceMessage(content, msg); break;
   }
   body.appendChild(content);
@@ -1410,11 +1445,6 @@ function renderMessage(msg) {
   const reactionsEl = document.createElement('div'); reactionsEl.className = 'msg-reactions';
   body.appendChild(reactionsEl);
   li.appendChild(body);
-  messagesEl.appendChild(li);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-  
-  // 自動朗讀訊息
-  autoReadMessage(msg);
 }
 function renderVoiceMessage(content, msg) {
   const audio = new Audio(msg.content);
@@ -1562,17 +1592,24 @@ function showStickerModal() {
   stickerModal.style.display = 'block';
   
   const grid = document.getElementById('sticker-grid');
-  if (grid.children.length === 0) {
-    stickers.forEach(sticker => {
-      const btn = document.createElement('button');
-      btn.textContent = sticker;
-      btn.style.cssText = 'font-size: 2em; padding: 10px; background: rgba(255,255,255,0.1); border: none; border-radius: 8px; cursor: pointer;';
-      btn.onmouseover = () => btn.style.background = 'rgba(255,255,255,0.2)';
-      btn.onmouseout = () => btn.style.background = 'rgba(255,255,255,0.1)';
-      btn.onclick = () => sendSticker(sticker);
-      grid.appendChild(btn);
-    });
-  }
+  // 每次都重新生成按鈕，確保事件綁定正確
+  grid.innerHTML = '';
+  stickers.forEach(sticker => {
+    const btn = document.createElement('button');
+    btn.textContent = sticker;
+    btn.style.cssText = 'font-size: 2em; padding: 10px; background: rgba(255,255,255,0.1); border: none; border-radius: 8px; cursor: pointer;';
+    btn.onmouseover = () => btn.style.background = 'rgba(255,255,255,0.2)';
+    btn.onmouseout = () => btn.style.background = 'rgba(255,255,255,0.1)';
+    
+    // 使用 addEventListener 而不是 onclick，確保事件優先權
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      sendSticker(sticker);
+    }, true); // 使用 capture phase
+    
+    grid.appendChild(btn);
+  });
 }
 
 function sendSticker(sticker) {
@@ -1595,6 +1632,127 @@ function sendSticker(sticker) {
   ws.send(JSON.stringify(msgData));
   closeModals();
   onMessageSent('chat');
+}
+
+// GIF 功能 - 使用 Tenor API (Google)
+const TENOR_API_KEY = 'AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ';
+let currentGifSearch = '';
+
+function showGifModal() {
+  modalBackdrop.style.display = 'block';
+  const gifModal = document.getElementById('gif-modal');
+  gifModal.style.display = 'block';
+  
+  // 載入熱門 GIF
+  if (document.getElementById('gif-results').children.length <= 1) {
+    loadTrendingGifs();
+  }
+  
+  // Enter 鍵搜尋
+  const searchInput = document.getElementById('gif-search-input');
+  searchInput.onkeydown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      searchGifs();
+    }
+  };
+}
+
+async function loadTrendingGifs() {
+  try {
+    const response = await fetch(`https://tenor.googleapis.com/v2/featured?key=${TENOR_API_KEY}&limit=15&contentfilter=medium`);
+    const data = await response.json();
+    console.log('Trending GIFs loaded:', data);
+    displayGifs(data.results);
+  } catch (error) {
+    console.error('Error loading trending GIFs:', error);
+    document.getElementById('gif-results').innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: red;">無法載入 GIF，請稍後再試<br><small>' + error.message + '</small></div>';
+  }
+}
+
+async function searchGifs() {
+  const query = document.getElementById('gif-search-input').value.trim();
+  if (!query) {
+    loadTrendingGifs();
+    return;
+  }
+  
+  currentGifSearch = query;
+  document.getElementById('gif-results').innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px;">🔍 搜尋中...</div>';
+  
+  try {
+    const response = await fetch(`https://tenor.googleapis.com/v2/search?key=${TENOR_API_KEY}&q=${encodeURIComponent(query)}&limit=15&contentfilter=medium`);
+    const data = await response.json();
+    console.log('Search results:', data);
+    
+    if (!data.results || data.results.length === 0) {
+      document.getElementById('gif-results').innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px;">😢 沒有找到相關 GIF<br><small>試試用英文搜尋，例如: happy, cat, dance</small></div>';
+    } else {
+      displayGifs(data.results);
+    }
+  } catch (error) {
+    console.error('Error searching GIFs:', error);
+    document.getElementById('gif-results').innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: red;">搜尋失敗<br><small>' + error.message + '</small></div>';
+  }
+}
+
+function displayGifs(gifs) {
+  const resultsDiv = document.getElementById('gif-results');
+  resultsDiv.innerHTML = '';
+  
+  if (!gifs || gifs.length === 0) {
+    resultsDiv.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px;">沒有 GIF 可以顯示</div>';
+    return;
+  }
+  
+  gifs.forEach(gif => {
+    const container = document.createElement('div');
+    container.style.cssText = 'position: relative; cursor: pointer; border-radius: 8px; overflow: hidden; aspect-ratio: 1; background: rgba(0,0,0,0.2);';
+    
+    const img = document.createElement('img');
+    // Tenor 的結構不同，使用 tinygif 或 gif
+    const gifUrl = gif.media_formats?.tinygif?.url || gif.media_formats?.gif?.url;
+    const fullGifUrl = gif.media_formats?.gif?.url;
+    
+    if (!gifUrl) {
+      console.warn('No GIF URL found for:', gif);
+      return;
+    }
+    
+    img.src = gifUrl;
+    img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+    img.alt = gif.content_description || 'GIF';
+    
+    container.onclick = () => sendGif(fullGifUrl, gif.content_description);
+    container.onmouseover = () => container.style.opacity = '0.8';
+    container.onmouseout = () => container.style.opacity = '1';
+    
+    container.appendChild(img);
+    resultsDiv.appendChild(container);
+  });
+}
+
+function sendGif(gifUrl, title) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    alert('連線尚未建立，請稍後再試！');
+    return;
+  }
+  
+  const msgData = {
+    type: 'gif',
+    room: currentRoom,
+    nickname: myNickname,
+    avatar: myAvatar,
+    content: gifUrl,
+    title: title,
+    timestamp: new Date().toISOString(),
+    level: userLevel,
+    title: userTitle
+  };
+  
+  ws.send(JSON.stringify(msgData));
+  closeModals();
+  onMessageSent('image');
 }
 function submitQuiz() {
   const question = document.getElementById('quiz-question').value;
