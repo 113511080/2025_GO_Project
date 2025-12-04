@@ -8,6 +8,3 @@ services:
     # so that http.FileServer(http.Dir("./static")) works correctly.
     buildCommand: cd chatroom && go build -o app main.go
     startCommand: cd chatroom && ./app
-    envVars:
-      - key: PORT
-        fromEnv: PORT
