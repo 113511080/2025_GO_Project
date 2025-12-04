@@ -313,13 +313,8 @@ function resizeCanvas() {
 function addChatMessage(msg) {
   const li = document.createElement('li');
   li.className = 'message';
-  let avatarEl = '';
-  if (msg.avatar.startsWith('data:') || msg.avatar.startsWith('http') || msg.avatar.startsWith('avatars/')) {
-    avatarEl = `<span class="avatar"><img src="${msg.avatar}"></span>`;
-  } else {
-    avatarEl = `<span class="avatar">${msg.avatar}</span>`;
-  }
-  li.innerHTML = `${avatarEl}<span class="nick">${msg.nickname}:</span> ${msg.content}`;
+  // Avatar display removed per user request
+  li.innerHTML = `<span class="nick">${msg.nickname}:</span> ${msg.content}`;
   messagesEl.appendChild(li);
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
