@@ -166,6 +166,8 @@ func (s *StateServiceV2) handleChat(msg models.Message) {
 		// Handle /setword command
 		if strings.HasPrefix(msg.Content, "/setword ") {
 			word := strings.TrimPrefix(msg.Content, "/setword ")
+			logger.Info("Processing /setword", zap.String("word", word), zap.String("nick", msg.Nickname))
+
 			if word != "" {
 				state.CurrentWord = word
 				state.CurrentDrawer = msg.Nickname
@@ -193,12 +195,18 @@ func (s *StateServiceV2) handleChat(msg models.Message) {
 							guesserClients = append(guesserClients, client)
 						}
 					}
+				} else {
+					logger.Warn("No clients found in _draw_game_ during /setword")
 				}
 				s.RoomsMutex.RUnlock()
 
 				if drawerClient != nil {
 					s.safeWriteJSON(drawerClient, drawerMsg)
+					logger.Info("Sent new_round_drawer to", zap.String("nick", drawerClient.Nickname))
+				} else {
+					logger.Warn("Drawer client not found in room", zap.String("target", msg.Nickname))
 				}
+
 				for _, client := range guesserClients {
 					s.safeWriteJSON(client, guesserMsg)
 				}

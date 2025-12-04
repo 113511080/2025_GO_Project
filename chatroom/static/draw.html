@@ -294,6 +294,10 @@ window.onload = () => {
     }
   };
   guessBtn.onclick = sendGuess;
+  guessBtn.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    sendGuess();
+  });
   guessText.onkeydown = e => { if (e.key === 'Enter') sendGuess(); };
   disableDrawing();
   initWS();
