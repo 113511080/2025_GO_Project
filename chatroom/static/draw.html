@@ -308,7 +308,158 @@ function resizeCanvas() {
     canvas.height = drawContainer.offsetHeight - 60; // Subtract toolbar height approx
 }
 
-// ... (initWS) ...
+function initWS() {
+  const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(`${proto}//${window.location.host}/ws`);
+  ws.onopen = () => {
+    console.log('Draw game connected to WS');
+    ws.send(JSON.stringify({
+      type: 'switch', room: '_draw_game_', nickname: myNickname, avatar: myAvatar
+    }));
+  };
+  ws.onmessage = event => {
+    const msg = JSON.parse(event.data);
+    switch (msg.type) {
+      case 'draw_start':
+      case 'draw_move':
+      case 'draw_end':
+        drawOnCanvas(msg);
+        break;
+      case 'clear_canvas':
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        break;
+      case 'chat':
+        addChatMessage(msg);
+        break;
+      case 'guess_correct':
+        addSystemMessage(`🎉 ${msg.nickname} 猜對了！答案是：${msg.content}`);
+        wordDisplay.textContent = "等待繪圖者...";
+        disableDrawing();
+        break;
+      case 'new_round_drawer':
+        wordDisplay.textContent = `你的題目是：${msg.content}`;
+        addSystemMessage("你是繪圖者！請開始作畫。");
+        enableDrawing();
+        break;
+      case 'new_round_guesser':
+        wordDisplay.textContent = `題目：${msg.content}`;
+        addSystemMessage(`${msg.nickname} 正在作畫...`);
+        disableDrawing();
+        break;
+    }
+  };
+  ws.onclose = () => { addSystemMessage('已與伺服器斷線'); };
+  ws.onerror = err => { console.error('Draw WS Error:', err); };
+}
+
+function getMousePos(evt) {
+    const rect = canvas.getBoundingClientRect();
+    if (evt.touches) {
+        return {
+            x: evt.touches[0].clientX - rect.left,
+            y: evt.touches[0].clientY - rect.top
+        };
+    }
+    return {
+        x: evt.clientX - rect.left,
+        y: evt.clientY - rect.top
+    };
+}
+
+function startDrawing(e) {
+  if (!canDraw || e.button !== 0 && !e.touches) return;
+  e.preventDefault();
+  isDrawing = true;
+  const { x, y } = getMousePos(e);
+  const msg = {
+    type: 'draw_start', room: '_draw_game_', nickname: myNickname,
+    x: x / canvas.width,
+    y: y / canvas.height,
+    color: colorPicker.value,
+    lineWidth: parseInt(lineWidth.value, 10)
+  };
+  ws.send(JSON.stringify(msg));
+  drawOnCanvas(msg);
+}
+
+function draw(e) {
+  if (!isDrawing || !canDraw) return;
+  e.preventDefault();
+
+  const now = Date.now();
+  if (now - lastSendTime < 30) { // Throttle to ~33 messages/sec
+    clearTimeout(drawThrottleTimeout);
+    drawThrottleTimeout = setTimeout(() => draw(e), 30 - (now - lastSendTime));
+    return;
+  }
+  lastSendTime = now;
+
+  const { x, y } = getMousePos(e);
+  const msg = {
+    type: 'draw_move', room: '_draw_game_', nickname: myNickname,
+    x: x / canvas.width,
+    y: y / canvas.height
+  };
+  ws.send(JSON.stringify(msg));
+  drawOnCanvas(msg);
+}
+
+function stopDrawing() {
+  if (!isDrawing) return;
+  clearTimeout(drawThrottleTimeout);
+  isDrawing = false;
+  const msg = { type: 'draw_end', room: '_draw_game_', nickname: myNickname };
+  ws.send(JSON.stringify(msg));
+  drawOnCanvas(msg);
+}
+
+function drawOnCanvas(msg) {
+  const x = msg.x * canvas.width;
+  const y = msg.y * canvas.height;
+  switch (msg.type) {
+    case 'draw_start':
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.strokeStyle = msg.color;
+      ctx.lineWidth = msg.lineWidth;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      break;
+    case 'draw_move':
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      break;
+    case 'draw_end':
+      ctx.stroke();
+      ctx.beginPath();
+      break;
+  }
+}
+
+function enableDrawing() {
+  canDraw = true;
+  canvas.style.cursor = 'crosshair';
+  clearBtn.disabled = false;
+}
+
+function disableDrawing() {
+  canDraw = false;
+  canvas.style.cursor = 'not-allowed';
+  clearBtn.disabled = true;
+}
+
+function sendGuess() {
+  const content = guessText.value.trim();
+  if (!content) return;
+  ws.send(JSON.stringify({
+    type: 'chat',
+    room: '_draw_game_',
+    nickname: myNickname,
+    avatar: myAvatar,
+    content: content
+  }));
+  guessText.value = '';
+}
 
 function addChatMessage(msg) {
   const li = document.createElement('li');
